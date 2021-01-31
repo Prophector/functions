@@ -1,0 +1,158 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform: AWS::Serverless-2016-10-31
+
+# Shared configuration for all resources, more in
+# https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    # The PermissionsBoundary allows users to safely develop with their function's permissions constrained
+    # to their current application. All the functions and roles in this application have to include it and
+    # it has to be manually updated when you add resources to your application.
+    # More information in https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
+    PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${AppId}-${AWS::Region}-PermissionsBoundary'
+
+Parameters:
+  AppId:
+    Type: String
+
+# Resources declares the AWS resources that you want to include in the stack
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+Resources:
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  chBagScraperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/ch-bag-scraper.chBagScrape
+      Runtime: nodejs12.x
+      Description: Scrape daily data from https://www.covid19.admin.ch/api/data/context
+      MemorySize: 256
+      Timeout: 120
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - arn:aws:iam::700271254946:policy/ProphectorS3Scrape
+      Events:
+        SimpleCWEEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 14 * 1-5 ? *)
+  chBagProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/ch-bag-processor.chBagProcessor
+      Runtime: nodejs12.x
+      Description: Processes data scraped from CH-BAG and updates the database
+      MemorySize: 512
+      Timeout: 300
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+        - arn:aws:iam::700271254946:policy/ProphectorS3Scrape
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-e3ef359c
+        SubnetIds:
+          - subnet-d8e535b3
+          - subnet-873746cb
+          - subnet-12fdf368
+      Events:
+        SimpleCWEEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(15 14 * 1-5 ? *)
+  worldOwidScraperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/world-owid-scraper.worldOwidScrape
+      Runtime: nodejs12.x
+      Description: Scrape daily data from https://covid.ourworldindata.org/data/owid-covid-data.json
+      MemorySize: 256
+      Timeout: 120
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - arn:aws:iam::700271254946:policy/ProphectorS3Scrape
+      Events:
+        SimpleCWEEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8 * 1-5 ? *)
+  worldOwidProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/world-owid-processor.worldOwidProcessor
+      Runtime: nodejs12.x
+      Description: Processes data scraped from OurWorldInData (OWID) and updates the database
+      MemorySize: 512
+      Timeout: 300
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+        - arn:aws:iam::700271254946:policy/ProphectorS3Scrape
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-e3ef359c
+        SubnetIds:
+          - subnet-d8e535b3
+          - subnet-873746cb
+          - subnet-12fdf368
+      Events:
+        SimpleCWEEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 8 * 1-5 ? *)
+  databaseMigrationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/database-migration.migrate
+      Runtime: nodejs12.x
+      Description: Runs automated pending database migrations when triggered
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-e3ef359c
+        SubnetIds:
+          - subnet-d8e535b3
+          - subnet-873746cb
+          - subnet-12fdf368
+  sqlCommandFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: build/handlers/sql-command.execute
+      Runtime: nodejs12.x
+      Description: Runs the query in the event object in property "query"
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-e3ef359c
+        SubnetIds:
+          - subnet-d8e535b3
+          - subnet-873746cb
+          - subnet-12fdf368

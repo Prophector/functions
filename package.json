@@ -1,0 +1,41 @@
+{
+  "name": "prophector-scrape",
+  "description": "",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start:ch-bag-scraper": "ts-node src/local-test.ts ch-bag-scraper",
+    "start:ch-bag-processor": "ts-node src/local-test.ts ch-bag-processor",
+    "start:world-owid-scraper": "ts-node src/local-test.ts world-owid-scraper",
+    "start:world-owid-processor": "ts-node src/local-test.ts world-owid-processor",
+    "start:database-migrate": "ts-node src/local-test.ts database-migrate",
+    "test": "jest",
+    "build": "tsc --build tsconfig.json",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    "aws-sdk": "^2.834.0",
+    "node-fetch": "^2.6.1",
+    "pg": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.5.7",
+    "@types/pg": "^7.14.7",
+    "jest": "^24.7.1",
+    "prettier": "^2.2.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.2"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sebastianhaeni/prophector-scrape.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sebastianhaeni/prophector-scrape/issues"
+  },
+  "homepage": "https://github.com/sebastianhaeni/prophector-scrape#readme"
+}
