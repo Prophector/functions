@@ -1,5 +1,4 @@
-import { Client, Submittable } from 'pg';
-import { getSecret } from './secret-utils';
+import { Client } from 'pg';
 
 export async function withDb(fn: (client: Client) => Promise<unknown>): Promise<string> {
   let databaseClient: Client;
@@ -44,16 +43,11 @@ export function connect(): Promise<Client> {
     return client.connect().then(() => client);
   }
 
-  if (process.env.LAMBDA_OFF) {
-    return createClientAndConnect({
-      username: 'postgres',
-      host: 'localhost',
-      password: 'postgres',
-      port: 5432,
-    });
-  }
-
-  return getSecret('prod/prophector-data').then((connectionParams) =>
-    createClientAndConnect(connectionParams),
-  );
+  const port = process.env['DB_PORT'] ? parseInt(process.env['DB_PORT']) : 5432;
+  return createClientAndConnect({
+    username: process.env['DB_USERNAME'] || 'postgres',
+    host: process.env['DB_HOST'] || 'localhost',
+    password: process.env['DB_PASSWORD'] || 'postgres',
+    port,
+  });
 }
