@@ -19,7 +19,7 @@ async function processData(client: Client): Promise<void> {
     console.log(`Start updating ${type}`);
 
     jsonData
-      .sort((a, b) => a.datum.localeCompare(b.datum))
+      .sort((a, b) => a.datum?.localeCompare(b.datum))
       .forEach((datum, i, self) => {
         if (i > 0) {
           datum.sumTotal = Math.max(datum.sumTotal || 0, self[i - 1].sumTotal || 0);
