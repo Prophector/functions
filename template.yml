@@ -37,7 +37,7 @@ Resources:
       Handler: build/handlers/ch-bag-scraper.chBagScrape
       Runtime: nodejs12.x
       Description: Scrape daily data from https://www.covid19.admin.ch/api/data/context
-      MemorySize: 256
+      MemorySize: 512
       Timeout: 120
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -80,7 +80,7 @@ Resources:
       Handler: build/handlers/world-owid-scraper.worldOwidScrape
       Runtime: nodejs12.x
       Description: Scrape daily data from https://covid.ourworldindata.org/data/owid-covid-data.json
-      MemorySize: 256
+      MemorySize: 512
       Timeout: 120
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -98,7 +98,7 @@ Resources:
       Runtime: nodejs12.x
       Description: Processes data scraped from OurWorldInData (OWID) and updates the database
       MemorySize: 512
-      Timeout: 300
+      Timeout: 600
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSLambdaVPCAccessExecutionRole
